@@ -3,3 +3,5 @@ data/
 
 # No notebook checkpoints
 *-checkpoint.ipynb
+
+Pipfile.lock
