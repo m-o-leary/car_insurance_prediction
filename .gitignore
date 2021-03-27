@@ -1,7 +1,9 @@
 # Don't check in data
 data/
+reports/
 
 # No notebook checkpoints
 *-checkpoint.ipynb
 
 Pipfile.lock
+
