@@ -8,3 +8,4 @@ sklearn
 rich
 shap
 xgboost
+dataprep
