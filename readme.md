@@ -1,23 +1,47 @@
-# Car Insurance Prediction
+# Car Insurance Prediction Problem
 
-The point of this repo is to demonstrate an end to end example of a classification problem.
+The goal of this project is to develop and serve a machine learning model that will predict whether a customer will buy car insurance or not.
+## Project Structure
 
-## Structure
+The overall priject structure is the following:
 
-There are 2 parts to this project:
+```text
 
-1.  Data transformation and model training code in `car_insurance_pipeline/`
-2.  Model serving over REST API code in `api/`
-
-To run the 
-
-### Data transformation and model training
-
-The data is from this Kaggle competition https://www.kaggle.com/kondla/carinsurance. 
-
-To download the data run the following:
-
-```bash
-chmod +x get_data.sh
-./get_data.sh
+.
+├── api                         <- Code for REST API
+├── data
+│   ├── processed               <- Output from pre-processing steps
+│   └── raw                     <- Raw data and documentation
+├── docker-compose.yml          
+├── model                       <- Saved models in pickle format
+├── notebooks                   <- Notebooks containing EDA and processing and model taining steps defined in the trainer_lib 
+├── readme.md
+├── reports                     <- Profiling outputs
+└── trainer                     <- Source code for all pre-processing / model training / evaluation
+    ├── trainer_lib
 ```
+
+The project is broken into 2 parts:
+
+1. Data processing and model training code in (code in `/trainer/`).
+2. Model serving over REST API code in (code in `api/`).
+
+## Running project
+
+You will need Docker installed to run this project code.
+( Details available here https://docs.docker.com/get-docker/ )
+
+To start and run the entire project locally (assuming you have docker installed):
+
+```sh
+docker-compose up
+```
+
+This will build all the required images and start the containers.
+### EDA / Pre-processing and Model training
+
+The easiest way to work through the end to end model training process is a jupyter lab instance running in the `trainer_1` container.
+
+To access this go to http://127.0.0.1:8888/lab?token=justatokengesture in a decent web browser.
+
+### Model predictions
