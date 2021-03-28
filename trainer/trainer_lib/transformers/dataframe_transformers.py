@@ -71,8 +71,8 @@ class CallDurationTransformer(TransformerMixin, BaseEstimator):
 
     def __init__(self, fmt='%H:%M:%S', start_column="CallStart", end_column="CallEnd"):
         self.fmt = fmt
-        self.start = start_column
-        self.end = end_column
+        self.start_column = start_column
+        self.end_column = end_column
     
     def fit(self, *args, **kwargs):
         return self
@@ -81,8 +81,8 @@ class CallDurationTransformer(TransformerMixin, BaseEstimator):
         """
         Calculate the time delta between 2 columns in minutes.
         """
-        __delta = datetime.strptime(row[self.end], self.fmt) \
-                - datetime.strptime(row[self.start], self.fmt)
+        __delta = datetime.strptime(row[self.end_column], self.fmt) \
+                - datetime.strptime(row[self.start_column], self.fmt)
         return __delta.total_seconds() / 60 
 
     def transform(self, incoming_df, **transform_params):
@@ -162,7 +162,7 @@ class MonthNameTransformer:
 
     def fit(self, *args, **kwargs):
         return self
-        
+
     def transform(self, incoming_df, **tranform_kwargs):
         """
         Transform the self.column which should be a column of
