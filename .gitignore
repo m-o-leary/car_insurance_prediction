@@ -1,6 +1,7 @@
 # Don't check in data
 data/
 reports/
+*.egg-info
 
 # No notebook checkpoints
 *-checkpoint.ipynb
