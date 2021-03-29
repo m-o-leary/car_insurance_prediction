@@ -11,7 +11,7 @@ The overall priject structure is the following:
 ├── api                         <- Code for REST API
 ├── data
 │   ├── processed               <- Output from pre-processing steps
-│   └── raw                     <- Raw data and documentation
+│   └── raw                     <- Raw data and documentation (Read only)
 ├── docker-compose.yml          
 ├── model                       <- Saved models in pickle format
 ├── notebooks                   <- Notebooks containing EDA and processing and model taining steps defined in the trainer_lib 
@@ -34,6 +34,8 @@ You will need Docker installed to run this project code.
 To start and run the entire project locally (assuming you have docker installed):
 
 ```sh
+git clone https://github.com/buddythumbs/car_insurance_prediction.git
+cd car_insurance_prediction
 docker-compose up
 ```
 
