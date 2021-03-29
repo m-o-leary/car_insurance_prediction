@@ -1,4 +1,5 @@
 from pandas_profiling import ProfileReport
+from trainer_lib.utils.filesystem import is_dir, make_dir
 
 class DataProfiler:
     """
@@ -11,6 +12,10 @@ class DataProfiler:
         self.data = data
         self.report_title = report_title
         self.out_path = out_path
+
+        # Check and create dir for data
+        if is_dir(self.out_path) == False:
+            make_dir(self.out_path)
 
     def profile(self):
         """

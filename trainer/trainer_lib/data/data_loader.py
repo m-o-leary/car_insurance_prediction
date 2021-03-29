@@ -7,7 +7,7 @@ from rich.console import Console
 from abc import ABC, abstractmethod
 
 from .config import TRAIN_DATA, TEST_DATA, DATA_URL, TARGET_VARIABLE
-
+from trainer_lib.utils.filesystem import is_dir, make_dir
 # Initialize console for degug printing
 console = Console()
 
@@ -45,18 +45,26 @@ class KaggleCarInsuranceDataLoader(AbstractDataLoader):
         self.target = target
         self.url = url
         self.save_path = save_path
+
+        # Check and create dir for data
+        if is_dir(self.save_path) == False:
+            make_dir(self.save_path)
+            self.download_data()
+
         if fetch:
             self.download_data()
-        
+
     def download_data(self):
         """
         Download the data from kaggle competition to local folder.
         """
+        console.log("Downloading data.")
         r = requests.get(self.url)
-        
+
         if r.ok:
             z = zipfile.ZipFile(io.BytesIO(r.content))
             z.extractall(self.save_path)
+            console.log("Done.")
         else:
             console.print('Could not download file from remote url.', style="bold red")
     
