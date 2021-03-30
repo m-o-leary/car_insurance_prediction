@@ -1,5 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+from app.rest.database import crud, models, database
+from app.rest.database.database import SessionLocal, engine
+
+# Init DB
+models.Base.metadata.create_all(bind=engine)
 
 # Tags for the different routes
 tags_metadata = [
@@ -26,7 +32,7 @@ app.add_middleware(
 )
 
 
-from rest.endpoints import cold_call
+from app.rest.endpoints.cold_call import router as cold_call_router
 
-app.include_router(cold_call.router)
+app.include_router(cold_call_router)
 
