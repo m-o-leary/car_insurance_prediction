@@ -1,1 +1,1 @@
-from rest import app
+from app.rest import app
