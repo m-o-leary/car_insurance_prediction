@@ -115,7 +115,7 @@ class Trainer:
         "Naive Bayes": {},
         "XGB": {
             'model__max_depth': [2, 3],
-            # 'model__n_estimators': [10, 100, 150],
+            'model__n_estimators': [10, 100, 150]
         }
     }
 
