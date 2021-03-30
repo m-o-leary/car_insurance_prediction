@@ -4,3 +4,4 @@
 # directtory
 DATA_DIR="../data/raw/"
 REPORT_DIR="../reports/"
+MODEL_DIR="../models/"
