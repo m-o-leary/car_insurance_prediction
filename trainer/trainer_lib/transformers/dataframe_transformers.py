@@ -145,15 +145,14 @@ class BaseMappingTransformer(BaseEstimator, TransformerMixin):
     Base transformer class for mapping a series to other values.
     """
 
-
     def __init__(self, feature=None, map_dict=None, default_value=None, coerce='int'):
         self.feature = feature
-        self.map = defaultdict(lambda: default_value )
-        self.map.update(map_dict)
+        self.default_value = default_value
+        self.map = map_dict
         self.coerce = coerce
 
     def __repr__(self):
-        return f"BaseMappingTransformer(map={json.dumps(self.map)})"
+        return f"BaseMappingTransformer(map={json.dumps(self.map).encode()})"
 
     def fit(self, *args, **kwargs):
         return self
@@ -164,7 +163,10 @@ class BaseMappingTransformer(BaseEstimator, TransformerMixin):
          strings corresponding to the keys available in self.map to a numeric variable.
         """
         outgoing_df = incoming_df.copy()
-        outgoing_df[self.feature] = outgoing_df[self.feature].map(self.map).astype(self.coerce, errors='ignore')
+        outgoing_df[self.feature] = outgoing_df[self.feature]\
+            .map(self.map)\
+            .fillna(self.default_value) \
+            .astype(self.coerce, errors='ignore')
 
         return outgoing_df
 
