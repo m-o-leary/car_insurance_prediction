@@ -2,6 +2,9 @@
 import numpy as np
 from rich.console import Console
 from sklearn.pipeline import Pipeline, FeatureUnion
+from trainer_lib.utils.filesystem import persist_pipeline, is_dir, make_dir
+from trainer_lib.utils.hashing import Hasher
+from trainer_lib.utils.notebook_config import MODEL_DIR
 np.random.seed(12345)
 console = Console()
 
@@ -80,7 +83,7 @@ class Encoder:
 
 class Trainer:
     """
-    Trainer class
+    Trainer class to train multiple models and evaluate.
     """
 
     NAMES = [
@@ -111,21 +114,23 @@ class Trainer:
         "AdaBoost": {},
         "Naive Bayes": {},
         "XGB": {
-            'model__max_depth': [2, 3, 5, 7, 10],
-            'model__n_estimators': [10, 100, 500],
+            'model__max_depth': [2, 3],
+            # 'model__n_estimators': [10, 100, 150],
         }
     }
 
-    def __init__(self, names=NAMES, clfs=CLASSIFIERS, grid=GRID_SEARCH):
+    def __init__(self, X, y, names=NAMES, clfs=CLASSIFIERS, grid=GRID_SEARCH, save_path=MODEL_DIR):
         """
-        Instantiate the Trainer classs
+        Instantiate the Trainer class
 
         :param names: Classifier names, defaults to NAMES
         :type names: list of strings, optional
         :param clfs: Classifiers to fit to the data, defaults to CLASSIFIERS
         :type clfs: list of sklearn estimator instances, optional
         """
-
+        self.hasher = Hasher
+        self.X = X
+        self.y = y
         self.names = names
         self.clfs = clfs
         self.grid = grid
@@ -133,8 +138,14 @@ class Trainer:
             ( 'feature_engineering', PreProcessor().make_pipeline()),
             ( "encoder", Encoder().make_pipeline()),
         ])
+        self.X_hash = self.hasher.get_hash_from_data(self.X)
+        self.save_path = save_path
 
-    def train(self, X, y):
+        # Check and create dir for data
+        if is_dir(self.save_path) == False:
+            make_dir(self.save_path)
+
+    def train(self):
         """
         Train all the classifiers associated with the 
 
@@ -149,11 +160,7 @@ class Trainer:
         self.best_classifier = None
         self.performance={}
 
-        kf = KFold(n_splits=10)
-        kf.get_n_splits(X)
-
         for name, model in zip(self.names, self.clfs):
-            
 
             # Create model pipeline with xgboost classifier
             console.rule(name)
@@ -163,19 +170,18 @@ class Trainer:
                 ('model', model)
             ])
 
-            scores = []
-            
-            score = self.grid_search(clf, self.GRID_SEARCH[name], X, y)
+            clf, score = self.grid_search(clf, self.GRID_SEARCH[name], self.X, self.y)
 
             if score > self.best_score:
                 self.best_score = score
                 self.best_classifier = clf
                 self.best_classifier__name = name
+
             self.performance[name] = score
-        
+
         return self.performance
 
-    def grid_search(self,clf, param_grid, X, y):
+    def grid_search(self, clf, param_grid, X, y):
         console.print("Starting grid search...")
         
         grid = GridSearchCV(
@@ -196,28 +202,57 @@ class Trainer:
         console.log(f"Best parameters: {grid.best_params_}")
         console.log(f"Mean CV score: [green]{mean_score: .6f}[/green]")
         console.log(f"Standard deviation of CV score: {std_score: .6f}")
-        return mean_score
+        return grid.best_estimator_, mean_score
 
+    def save_best(self):
+        """
+        Save a copy of the pipeline.
 
-        
+        Get a hash for the raw data, the hashed data and pipeline.
+
+        :param path: Path to where the model should be saved.
+        :return:None
+        """
+        explainer = Explain(self.best_classifier, self.X)
+        hash_dict = {
+            "pipeline_hash": self.hasher.get_hash_from_pipeline(self.best_classifier),
+            "raw_hash": self.X_hash,
+            "processed_hash": self.hasher.get_hash_from_data(explainer.X_df),
+        }
+
+        hash_dict.update({'estimator_id': self.hasher.get_hash_from_object(hash_dict)})
+        model_id = f"{self.save_path}/{hash_dict['estimator_id']}.pkl"
+        persist_pipeline(self.best_classifier, model_id)
+        console.print(f"Model saved as {model_id}!")
+
+        return hash_dict
+
 class Evaluation:
     """
     Evaluate a fitted classifier.
     """
-    def get_plot_roc(self, clf, X, y):
+
+    def __init__(self, clf, X, y):
+        self.clf = clf
+        self.X = X
+        self.y = y
+
+    def get_plot_roc(self):
         """
         Get plot of Receiver operator curve.
         """
+        clf, X, y = self.clf, self.X, self.y
         pl, ax = plt.subplots(figsize=(11,5))
         p = plot_roc_curve(clf, X, y, ax=ax)
         clf_name = list(clf.named_steps.keys())[-1]
         plt.title(f"Receiver Operator Curve for {clf_name} Classifier")
         plt.show()
         
-    def get_confusion_matrix(self, clf, X, y):
+    def get_confusion_matrix(self):
         """
         Calculate the confusion matrix and return
         """
+        clf, X, y = self.clf, self.X, self.y
         preds = clf.predict(X)
         return confusion_matrix(y, preds)
 
@@ -242,21 +277,23 @@ class Evaluation:
         FN = confusion_matrix[1,0]
         return (TP + TN) / ( TP + TN + FP + FN) 
 
-    def evaluate(self, *classifier_and_data):
+    def run(self):
         """
         Take a classifier and test data and evaluate the performance.
 
         Returns a dict with evaluation metrics.
         """
-        confusion_ = self.get_confusion_matrix(*classifier_and_data)
+        confusion_ = self.get_confusion_matrix()
 
-        return self.get_plot_roc(*classifier_and_data), {
+        return self.get_plot_roc(), {
             "f1_score": self.get_f1_score(confusion_),
             "accuracy": self.get_accuracy(confusion_)
         }
 
 class Explain:
-
+    """
+    Model explainability class.
+    """
 
     def __init__(self, clf, X ):
 
@@ -277,6 +314,7 @@ class Explain:
 
     def waterfall(self, index=0):
         shap.plots.waterfall(self.shap_values[index], max_display=15)
+
 
     def prediction(self, index=0):
         p = shap.plots.force(self.shap_values[index])
