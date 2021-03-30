@@ -1,13 +1,14 @@
 from .config import DATA_URL, TRAIN_DATA, TEST_DATA, TARGET_VARIABLE
 from .data_loader import KaggleCarInsuranceDataLoader
 from .data_profiler import DataProfiler
+from sklearn.model_selection import train_test_split
 
 class DataManager:
     """
     Manager class to load and profile data.
     """
 
-    def __init__(self, save_path, report_path, refresh=False):
+    def __init__(self, save_path, report_path, refresh=False, split=0.75, seed=43):
         """
         Initialize object and download data.
 
@@ -18,6 +19,8 @@ class DataManager:
         """
         self.loader = KaggleCarInsuranceDataLoader(save_path, fetch=refresh)
         self.report_path = report_path
+        self.split = split
+        self.seed = seed
         self.train_x, self.train_y = self.loader.get_train_data(return_x_y=True)
         self.test_x, self.test_y = self.loader.get_test_data(return_x_y=True)
         
@@ -28,6 +31,20 @@ class DataManager:
     @property
     def test(self):
         return self.test_x, self.test_y
+
+    @property
+    def train_test(self):
+        """
+        Return the training and test sets split from the training csv.
+
+        :return: tuple(X_train, X_test, y_train, y_test)
+        :rtype: tuple
+        """
+        X, y = self.train
+        return train_test_split(
+            X,y, 
+            random_state=self.seed, 
+            train_size=self.split)
 
     def profile(self):
         """
