@@ -1,5 +1,10 @@
 # Transformers
 import numpy as np
+import shap
+import pandas as pd
+import matplotlib.pyplot as plt
+import requests
+from datetime import date
 from rich.console import Console
 from sklearn.pipeline import Pipeline, FeatureUnion
 from trainer_lib.utils.filesystem import persist_pipeline, is_dir, make_dir
@@ -34,9 +39,7 @@ from sklearn.model_selection import KFold, GridSearchCV
 # Evaluation
 from sklearn.metrics import plot_roc_curve, confusion_matrix
 from sklearn.model_selection import KFold
-import shap
-import pandas as pd
-import matplotlib.pyplot as plt
+
 
 class PreProcessor:
     
@@ -85,7 +88,7 @@ class Trainer:
     """
     Trainer class to train multiple models and evaluate.
     """
-
+    MODEL_POST_URL = "http://api:80/insurance_model/models/"
     NAMES = [
         # "Linear SVM",
         # "Decision Tree", 
@@ -115,11 +118,11 @@ class Trainer:
         "Naive Bayes": {},
         "XGB": {
             'model__max_depth': [2, 3],
-            'model__n_estimators': [10, 100, 150]
+            # 'model__n_estimators': [10, 100, 150]
         }
     }
 
-    def __init__(self, X, y, names=NAMES, clfs=CLASSIFIERS, grid=GRID_SEARCH, save_path=MODEL_DIR):
+    def __init__(self, X, y, names=NAMES, clfs=CLASSIFIERS, grid=GRID_SEARCH, save_path=MODEL_DIR, api_url=MODEL_POST_URL):
         """
         Instantiate the Trainer class
 
@@ -129,6 +132,7 @@ class Trainer:
         :type clfs: list of sklearn estimator instances, optional
         """
         self.hasher = Hasher
+        self.api_url = api_url
         self.X = X
         self.y = y
         self.names = names
@@ -198,21 +202,24 @@ class Trainer:
         std_score = grid.cv_results_["std_test_score"][grid.best_index_]
 
         grid.best_params_, mean_score, std_score
-
+        self.best_paramas = grid.best_params_
         console.log(f"Best parameters: {grid.best_params_}")
         console.log(f"Mean CV score: [green]{mean_score: .6f}[/green]")
         console.log(f"Standard deviation of CV score: {std_score: .6f}")
         return grid.best_estimator_, mean_score
 
-    def save_best(self):
+    def save_best(self, name):
         """
         Save a copy of the pipeline.
 
         Get a hash for the raw data, the hashed data and pipeline.
 
-        :param path: Path to where the model should be saved.
-        :return:None
+        :param name: Name for model tracking
+        :type name: str
+        :return: dict of saved responses.
+        :rtype: dict
         """
+        metrics = Evaluation(self.best_classifier, self.X, self.y).run()
         explainer = Explain(self.best_classifier, self.X)
         hash_dict = {
             "pipeline_hash": self.hasher.get_hash_from_pipeline(self.best_classifier),
@@ -221,9 +228,30 @@ class Trainer:
         }
 
         hash_dict.update({'estimator_id': self.hasher.get_hash_from_object(hash_dict)})
-        model_id = f"{self.save_path}/{hash_dict['estimator_id']}.pkl"
+        model_id = f"{self.save_path}{hash_dict['estimator_id']}.pkl"
         persist_pipeline(self.best_classifier, model_id)
         console.print(f"Model saved as {model_id}!")
+
+        # Saving to DB
+        console.print(self.api_url)
+        self.save_object_ = {
+            "estimator_id": hash_dict['estimator_id'],
+            "name": name,
+            "params": self.best_paramas,
+            "f1_score": metrics['f1_score'],
+            "accuracy": metrics['accuracy'],
+            "d": date.today(),
+            "raw_hash": hash_dict['raw_hash'],
+            "processed_hash": hash_dict['processed_hash'],
+            "pipeline_hash": hash_dict['pipeline_hash']
+        }
+        # Add to our DB - the FastAPI container must be running!
+        myobj = {'somekey': 'somevalue'}
+
+        x = requests.post( self.api_url, data = self.save_object_ )
+
+        if x.ok:
+            return 
 
         return hash_dict
 
@@ -277,15 +305,16 @@ class Evaluation:
         FN = confusion_matrix[1,0]
         return (TP + TN) / ( TP + TN + FP + FN) 
 
-    def run(self):
+    def run(self, plot=False):
         """
         Take a classifier and test data and evaluate the performance.
 
         Returns a dict with evaluation metrics.
         """
         confusion_ = self.get_confusion_matrix()
-
-        return self.get_plot_roc(), {
+        if plot:
+            self.get_plot_roc()
+        return {
             "f1_score": self.get_f1_score(confusion_),
             "accuracy": self.get_accuracy(confusion_)
         }
@@ -314,7 +343,6 @@ class Explain:
 
     def waterfall(self, index=0):
         shap.plots.waterfall(self.shap_values[index], max_display=15)
-
 
     def prediction(self, index=0):
         p = shap.plots.force(self.shap_values[index])
