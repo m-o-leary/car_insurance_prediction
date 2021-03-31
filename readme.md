@@ -3,6 +3,7 @@
 The goal of this project is to develop and serve a machine learning model that will predict whether a customer will buy car insurance or not.
 
 ## TL;DR
+
 I used `XGBOOST` and got an average accuracy of 92% on 10 Fold cross validation using the training dat set. This was helped with feature engineering and CV grid search I believe.
 
 ## Project Structure
