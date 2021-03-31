@@ -72,5 +72,6 @@ The model is exposed as a RESTful API (via FastAPI) and that code is running in 
 The API comes with a swagger UI for testing and documenting the API (as well as the `openapi.json` file which can be used to quickly bootstrap a client :) )
 
 To access this go to http://127.0.0.1:3007/docs# in a decent web browser.
+The following link will provide the a better (to my eye) explanation of the API schemas.
 
 **The port is set in the `docker-compose.yml` file so if you need to change it from `3007`, change it there and restart the container**
