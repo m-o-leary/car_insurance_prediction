@@ -1,4 +1,4 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, Field
 from typing import Dict, FrozenSet, List
 from enum import Enum, IntEnum
 from typing import List, Optional, Tuple
@@ -76,35 +76,41 @@ class Call(BaseModel):
     """
     Cold Call model
     """
-    id: int = None
-    age: int = None
-    job: JobEnum = JobEnum.other
-    marital: MaritalEnum = None
-    education: EducationEnum = None
-    default: int = None
-    balance: float = None
-    has_home_insurance: int = None
-    car_loan: int = None
-    communication: CommunicationEnum = CommunicationEnum.other
-    last_contact_day: int = None
-    last_contact_month: MonthEnum = None
-    num_contacts: int = None
-    days_passed: int = None
-    previous_attempts: int = None
-    outcome: OutcomeEnum = None
-    call_start: str = None
-    call_end: str = None
+    id: int = Field(None, description="The ID of the row in the data.")
+    age: int = Field(None, description="The Age of the user.", gt=0, lt=120)
+    job: JobEnum = Field(JobEnum.other, description="The job type of the customer.")
+    marital: MaritalEnum = Field(None, description="The Marital status of the customer.")
+    education: EducationEnum = Field(None, description="The education level of the customer.")
+    default: int = Field(None, description="Whether the customer is in default or not.")
+    balance: float = Field(None, description="The account balance of the customer.")
+    has_home_insurance: int = Field(None, description="Has the customer home insurance.")
+    car_loan: int = Field(None, description="Has the customer a car loan.")
+    communication: CommunicationEnum = Field(CommunicationEnum.other, description="The communication type with the customer.")
+    last_contact_day: int = Field(None, description="The day of the month of the previous contact with the customer.")
+    last_contact_month: MonthEnum = Field(None, description="The month (3 letter abbreviation) of the previous contact with the customer.")
+    num_contacts: int = Field(None, description="The number of contacts with the customer this campaign.")
+    days_passed: int = Field(None, description="The number of days passed since previous contact with the customer.")
+    previous_attempts: int = Field(None, description="The number of previous attempts to sell car insurance to this customer.")
+    outcome: OutcomeEnum = Field(None, description="The outcome of previous attempts to sell car insurance to this customer.")
+    call_start: str = Field(None, description="The time the call started. Format is HH:mm:ss")
+    call_end: str = Field(None, description="The time the call ended. Format is HH:mm:ss")
     
     class Config:
         orm_mode = True
+        anystr_strip_whitespace = True
+        use_enum_values = True
 
 class CallPrediction(Call):
     """
     Prediction model including the output
     """
-    explanation: str=""
-    prediction: int = 0
-    prediction_proba: float = 0.5
+    explanation: str= Field("", description="Explantion of model prediction.")
+    prediction: int = Field(None, description="The model prediction. 1 = successful, 0 = unsuccessful.")
+    prediction_proba: float = Field(0.5, description="""
+        The model prediction probability. 
+        Assuming a calibrated model, this is the output (between 0 and 1) of the model.
+        Closer to 0 means very little chance of success and closer to 1 means very good chances of success.
+        """)
     
     class Config:
         orm_mode = True
@@ -120,13 +126,18 @@ class CallPredictionSaved(CallPrediction):
 
 class Model(BaseModel):
     """
-    Machine learning model data model
+    Machine learning classification model model :) .
+
     """
-    id: str
-    name: str
-    params: dict
-    score: float
-    date: date
+    estimator_id:str = Field(None, description="The unique Hash of the model pipeline, raw data, processed data hashes. If anything in either of those 3 elements change, so will this.")
+    name: str = Field('No Name', description="The name of the model e.g. XGBOOST")
+    params: dict = Field({}, decsiption="Parameter dict used by this model.")
+    f1_score: float = Field(0.0, description="The f1 score for the classifier")
+    accuracy: float = Field(0.0, description="The accuracy for the classifier")
+    d: date = Field(..., description="Date of model training")
+    raw_hash: str = Field(None, description="Unique hash of the pandas dataframe used as raw data." )
+    processed_hash: str = Field(None, description="Unique hash of the processed dataframe. This changing indicates a difference in pre-processing pipeline definition or different raw data.")
+    pipeline_hash: str = Field(None, description="Unique hash of the pre-processing pipeline. This changing indicates a difference in the pre-processing pipeline definition only.")
 
     class Config:
         orm_mode = True
