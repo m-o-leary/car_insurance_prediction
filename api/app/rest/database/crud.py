@@ -26,9 +26,9 @@ def get_prediction(db: Session, pred_id: str):
 def get_predictions(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Prediction).offset(skip).limit(limit).all()
 
-def create_prediction_row(db: Session, pred: cold_call.CallPrediction):
+def create_prediction_row(db: Session, pred: cold_call.CallPrediction, model_id: str):
     
-    db_pred = models.Prediction(**pred.dict())
+    db_pred = models.Prediction(**pred.dict(), model_id=model_id )
     db.add(db_pred)
     db.commit()
     # Only needed if the DB adds data to model e.g. auto - incremented ID

@@ -111,6 +111,7 @@ class CallPrediction(Call):
         Assuming a calibrated model, this is the output (between 0 and 1) of the model.
         Closer to 0 means very little chance of success and closer to 1 means very good chances of success.
         """)
+    model_id: str = Field("", description="The id of the model used to generate this prediction.")
     
     class Config:
         orm_mode = True
@@ -138,7 +139,7 @@ class Model(BaseModel):
     raw_hash: str = Field(None, description="Unique hash of the pandas dataframe used as raw data." )
     processed_hash: str = Field(None, description="Unique hash of the processed dataframe. This changing indicates a difference in pre-processing pipeline definition or different raw data.")
     pipeline_hash: str = Field(None, description="Unique hash of the pre-processing pipeline. This changing indicates a difference in the pre-processing pipeline definition only.")
-
+    predictions: List[CallPredictionSaved] = []
     class Config:
         orm_mode = True
     

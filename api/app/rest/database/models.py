@@ -17,6 +17,8 @@ class Model(Base):
     processed_hash = Column(String)
     pipeline_hash = Column(String)
 
+    predictions = relationship("Prediction", back_populates="model")
+
 class Prediction(Base):
     __tablename__ = "predictions"
     
@@ -42,3 +44,6 @@ class Prediction(Base):
     prediction = Column(Boolean)
     prediction_proba = Column(Float)
     explanation = Column(String,default="")
+    model_id = Column(String, ForeignKey("models.estimator_id"))
+
+    model = relationship("Model", back_populates="predictions")

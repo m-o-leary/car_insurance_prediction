@@ -98,6 +98,6 @@ async def run_prediction(model_id, call: Call, db: Session = Depends(get_db)):
             prediction=int(pred__[0][1] > 0.5), 
             prediction_proba = pred__[0][1])
 
-        return crud.create_prediction_row(db=db, pred=pred)
+        return crud.create_prediction_row(db=db, pred=pred, model_id=model_id)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail=f"No cached model with id:{model_id} could be found!")
