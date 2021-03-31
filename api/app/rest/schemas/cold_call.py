@@ -92,8 +92,8 @@ class Call(BaseModel):
     days_passed: int = Field(None, description="The number of days passed since previous contact with the customer.")
     previous_attempts: int = Field(None, description="The number of previous attempts to sell car insurance to this customer.")
     outcome: OutcomeEnum = Field(None, description="The outcome of previous attempts to sell car insurance to this customer.")
-    call_start: str = Field(None, description="The time the call started. Format is HH:mm:ss")
-    call_end: str = Field(None, description="The time the call ended. Format is HH:mm:ss")
+    call_start: str = Field(None, description="The time the call started. Format is HH:mm:ss", regex='^[0-9]{2}:[0-9]{2}:[0-9]{2}')
+    call_end: str = Field(None, description="The time the call ended. Format is HH:mm:ss", regex='^[0-9]{2}:[0-9]{2}:[0-9]{2}')
     
     class Config:
         orm_mode = True
