@@ -7,11 +7,15 @@ from .database import Base
 class Model(Base):
     __tablename__ = "models"
     
-    id = Column(String, primary_key=True, index=True)
+    estimator_id = Column(String, primary_key=True, index=True)
     name = Column(String)
     params = Column(String)
-    score = Column(Float)
-    date = Column(Date)
+    f1_score = Column(Float)
+    accuracy = Column(Float)
+    d = Column(Date)
+    raw_hash = Column(String)
+    processed_hash = Column(String)
+    pipeline_hash = Column(String)
 
 class Prediction(Base):
     __tablename__ = "predictions"
