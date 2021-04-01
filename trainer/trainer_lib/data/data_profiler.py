@@ -21,5 +21,5 @@ class DataProfiler:
         """
         Profile the data and save a report in html
         """
-        self.profile = ProfileReport(self.data, title=self.report_title, explorative=True)
+        self.profile = ProfileReport(self.data, title=self.report_title, progress_bar=False, explorative=True)
         self.profile.to_file(f"{self.out_path}/{self.report_title}.html")
