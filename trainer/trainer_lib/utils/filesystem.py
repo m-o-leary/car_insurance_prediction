@@ -1,5 +1,4 @@
 import os
-import joblib
 
 def make_dir(path):
     """
@@ -37,18 +36,6 @@ def is_dir(path):
             raise ValueError(f"{path} is not a valid path.")
     else:
         return False
-
-def persist_pipeline(pipeline, save_path):
-    """
-    Persist a pipeline.
-    """
-    joblib.dump(pipeline, save_path)
-
-def load_pipeline(pipeline_path):
-    """
-    Load a saved pipeline.
-    """
-    joblib.load(pipeline_path)
 
 
 
