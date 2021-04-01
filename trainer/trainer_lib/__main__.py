@@ -74,7 +74,7 @@ def main(args=None):
 
 	if args.out:
 		# Check if dir exists
-		if ~is_dir(args.out):
+		if is_dir(args.out) is False:
 			make_dir(args.out)	
 		# Save the processed dataset to the provided location.
 		score, params, hash_id = trainer.performance[trainer.best_classifier__name]
