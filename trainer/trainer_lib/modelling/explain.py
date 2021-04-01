@@ -1,5 +1,7 @@
 import shap
 import matplotlib.pyplot as plt
+from trainer_lib.data.data_reconstructor import DataReconstructor
+from trainer_lib.utils.hashing import Hasher
 
 class Explain:
     """
@@ -29,4 +31,4 @@ class Explain:
     def summary(self, index=0):
         f = plt.figure()
         shap.summary_plot(self.shap_values, self.X_df)
-        f.savefig(f"./{hasher.get_hash_from_pipeline(self.clf)}_summary_plot.png", bbox_inches='tight', dpi=600)
+        f.savefig(f"./{Hasher.get_hash_from_pipeline(self.clf)}_summary_plot.png", bbox_inches='tight', dpi=600)
