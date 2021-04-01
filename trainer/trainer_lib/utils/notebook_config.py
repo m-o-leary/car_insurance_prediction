@@ -3,6 +3,6 @@
 # These locations are relative to the /notebooks 
 # directtory
 DOCKER_DATA_DIR="/app/data/raw/"
-DATA_DIR="../data/raw/"
-REPORT_DIR="../reports/"
-MODEL_DIR="../models/"
+DATA_DIR="/app/data/raw/"
+REPORT_DIR="/app/reports/"
+MODEL_DIR="/app/models/"
