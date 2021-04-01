@@ -209,6 +209,30 @@ class EducationTransformer(BaseMappingTransformer):
         self.map_dict = map_dict
         super().__init__(feature=feature, map_dict=self.map_dict, default_value=np.nan)
 
+class DaysPassedTransformer(BaseEstimator, TransformerMixin):
+    """
+    Class to transform a the DaysPassed feature so that the -1 values will be set to the median.
+    """
+    
+    def __init__(self, feature="DaysPassed", strategy='median'):
+        self.feature = feature
+        self.strategy = strategy
+
+    def fit(self, X, y=None, **kwargs):
+        exec(f"self.fill_value = X.loc[X[self.feature] >= 0, self.feature].{self.strategy}()")
+        return self
+
+    def transform(self, incoming_df, y=None, **kwargs):
+        """
+        Transform the dataframe by filling all negative values with the median
+        """
+        outgoing_df = incoming_df.copy()
+        mask = outgoing_df[self.feature] < 0
+        outgoing_df.loc[mask, self.feature ] = self.fill_value
+        return outgoing_df
+        
+        
+
 class OutcomeTransformer(BaseMappingTransformer):
     """
     Class to transform a the Outcome column into binary column of 1 = success, 0 = otherwise.

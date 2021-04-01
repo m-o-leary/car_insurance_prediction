@@ -27,6 +27,7 @@ from trainer_lib.transformers import EducationTransformer
 from trainer_lib.transformers import DatasetCleanerPipeline
 from trainer_lib.transformers import OutcomeTransformer
 from trainer_lib.transformers import JobTransformer
+from trainer_lib.transformers import DaysPassedTransformer
 from trainer_lib.modelling.evaluate import Evaluation
 from trainer_lib.modelling.explain import Explain
 from trainer_lib.data.config import ALL_COLUMNS, ONE_HOT_CATEGORICAL_COLUMNS, SCALABLE_NUMERIC_COLUMNS
@@ -45,6 +46,7 @@ class PreProcessor:
         ("convert_month", MonthNameTransformer()),
         ("convert_education", EducationTransformer()),
         ("convert_outcome", OutcomeTransformer()),
+        ('replace_negative_days_passed', DaysPassedTransformer()),
         ("impute_missing", DatasetCleanerPipeline()),
         ("column_selection", SelectFeaturesTransfomer(features=ALL_COLUMNS))
     ]
@@ -122,6 +124,7 @@ class Trainer:
         
         console.print()
         console.rule(f"Experiment name: {experiment_name}")
+        console.print()
         
         with Live(TrainerConsole(self).update(), refresh_per_second=4) as live:
             for name, __ in self.grid.items():
