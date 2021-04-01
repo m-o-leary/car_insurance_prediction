@@ -31,7 +31,7 @@ async def get_model(model_id: str, db: Session = Depends(get_db)):
 
     """
 
-    model = crud.get_model(d, model_id=model_id)
+    model = crud.get_model(db, model_id=model_id)
     model.params = json.loads(model.params)
     return model
 
