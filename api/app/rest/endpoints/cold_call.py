@@ -67,8 +67,8 @@ async def get_prediction(pred_id: str, db: Session = Depends(get_db)):
 
     return pred
 
-@router.post("/predictions/{model_id}", response_model=CallPredictionSaved, status_code=201, tags=["Model"])
-async def run_prediction(model_id, call: Call, db: Session = Depends(get_db)):
+@router.post("/predictions/{model_id}", response_model=List[CallPredictionSaved], status_code=201, tags=["Model"])
+async def run_prediction(model_id, calls: List[Call], db: Session = Depends(get_db)):
     """
     Submit cold call details for success prediction.
     The result and the details will be stored in the database.
@@ -76,28 +76,25 @@ async def run_prediction(model_id, call: Call, db: Session = Depends(get_db)):
     """
     try:
         clf = model_prediction.load_pipeline(model_id)
-        call_df = model_prediction.map_call_line_to_prediction(call)
-        pred__ = clf.predict_proba(call_df)
-        print(call_df)
-        print(clf.predict_proba(call_df))
-        # run pred
-        #  ... 
+        call_df = model_prediction.map_call_line_to_prediction(calls)
+        preds__ = clf.predict_proba(call_df)
+
         cost_of_calling = 15
         gain_from_selling = 300
-
-        net_gain = ( pred__[0][1] * gain_from_selling ) - ( pred__[0][0]* cost_of_calling )
-
-
-        explanation = "Calling this customer is likely to result in them purchasing car insurance." \
-            if pred__[0][1] > 0.5\
-                 else "Calling this customer is unlikely to result in a successful sale."
-        explanation += f" The expexcted value of this call is ${np.round(net_gain, 1)}"
+        predictions = []
         
-        pred = CallPrediction(**call.dict(), 
-            explanation=explanation,
-            prediction=int(pred__[0][1] > 0.5), 
-            prediction_proba = pred__[0][1])
-
-        return crud.create_prediction_row(db=db, pred=pred, model_id=model_id)
+        for i, pred__ in enumerate(preds__):
+            net_gain = ( pred__[1] * gain_from_selling ) - ( pred__[0]* cost_of_calling )
+            explanation = "Calling this customer is likely to result in them purchasing car insurance." \
+                if pred__[1] > 0.5\
+                    else "Calling this customer is unlikely to result in a successful sale."
+            explanation += f" The expexcted value of this call is ${np.round(net_gain, 1)}"
+            pred = CallPrediction(**calls[i].dict(), 
+                explanation=explanation,
+                prediction=int(pred__[1] > 0.5), 
+                prediction_proba = pred__[1])
+            pred.model_id = model_id
+            predictions.append(crud.create_prediction_row(db=db, pred=pred))
+        return predictions
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail=f"No cached model with id:{model_id} could be found!")
