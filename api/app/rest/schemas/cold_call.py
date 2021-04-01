@@ -10,7 +10,7 @@ class JobEnum(str, Enum):
     List of available jobs to send
 
     """
-    management=""
+    management="management"
     blue_collar='blue-collar'
     student='student'
     technician='technician'
