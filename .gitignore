@@ -1,6 +1,6 @@
 # Don't check in data
 data/raw/
-data/procssed/
+data/processed/
 reports/
 *.egg-info
 __pycache__/
