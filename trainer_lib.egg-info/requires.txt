@@ -1,0 +1,11 @@
+pandas
+jupyterlab
+pandas_profiling
+matplotlib
+numpy
+scikit-learn
+sklearn
+rich
+shap
+xgboost
+dataprep
