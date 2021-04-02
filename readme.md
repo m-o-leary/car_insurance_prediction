@@ -113,6 +113,6 @@ The API comes with a swagger UI for testing and documenting the API (as well as 
 ![rest endpoint](reports/fast_api.png)
 
 To access this go to http://127.0.0.1:3007/docs# in a decent web browser.
-The following link will provide the a better (to my eye) explanation of the API schemas ttp://127.0.0.1:3007/redoc/ 
+The following link will provide the a better (to my eye) explanation of the API schemas http://127.0.0.1:3007/redoc/ 
 
 **The port is set in the `docker-compose.yml` file so if you need to change it from `3007`, change it there and restart the container**
