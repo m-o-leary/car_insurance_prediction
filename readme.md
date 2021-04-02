@@ -1,6 +1,6 @@
 # Car Insurance Prediction Problem
 
-The goal of this project is to develop and serve a machine learning model that will predict whether a customer will buy car insurance or not.
+The goal of this project is to develop and serve a machine learning model that will predict whether a customer will buy car insurance or not. The data was retrieved from this Kaggle competition: https://www.kaggle.com/kondla/carinsurance 
 
 ## TL;DR
 
@@ -15,7 +15,7 @@ The most important feature came out to be how long the previous call lasted for 
 
 The model is served from a REST endpoint which can be used to test the model (once the containers are up and running locally).
 
-
+![rest endpoint](reports/fast_api.png)
 
 ## Project Structure
 
