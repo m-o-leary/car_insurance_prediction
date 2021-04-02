@@ -4,7 +4,18 @@ The goal of this project is to develop and serve a machine learning model that w
 
 ## TL;DR
 
-I used `XGBOOST` and got an average accuracy of 92% on 10 Fold cross validation using the training dat set. This was helped with feature engineering and CV grid search I believe.
+I used `XGBOOST` and got an average auc of > 92% on 10 Fold cross validation using the training dat set. This was helped with feature engineering and CV grid search I believe.
+The most important feature came out to be how long the previous call lasted for in minutes (see below for caveats and next steps).
+
+![best model summary](reports/best_model_summary_plot.png)
+
+**However**, having analyzed the final model I believe that the `CallDurationMins` feature needs more attention as it is not directly something we have complete control over.
+
+**Also**, there is a strong case here for having 2 models, one for customers who were previously contacted, and one for first-time campaign customers as these would represent 2 very different subsets of the population (IMO!).
+
+The model is served from a REST endpoint which can be used to test the model (once the containers are up and running locally).
+
+
 
 ## Project Structure
 
