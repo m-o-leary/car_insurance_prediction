@@ -19,18 +19,10 @@ console = Console()
 
 # Our code
 from trainer_lib import DataManager
-from trainer_lib.transformers import SelectFeaturesTransfomer
-from trainer_lib.transformers import CallDurationTransformer
-from trainer_lib.transformers import TimeOfDayTransformer
-from trainer_lib.transformers import MonthNameTransformer
-from trainer_lib.transformers import EducationTransformer
-from trainer_lib.transformers import DatasetCleanerPipeline
-from trainer_lib.transformers import OutcomeTransformer
-from trainer_lib.transformers import JobTransformer
-from trainer_lib.transformers import DaysPassedTransformer
 from trainer_lib.modelling.evaluate import Evaluation
+from trainer_lib.modelling.model_config import PRE_PROCESSING_STEPS
 from trainer_lib.modelling.explain import Explain
-from trainer_lib.data.config import ALL_COLUMNS, ONE_HOT_CATEGORICAL_COLUMNS, SCALABLE_NUMERIC_COLUMNS
+from trainer_lib.data.config import ONE_HOT_CATEGORICAL_COLUMNS, SCALABLE_NUMERIC_COLUMNS
 
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.compose import ColumnTransformer
@@ -39,19 +31,7 @@ from sklearn.model_selection import GridSearchCV
 
 class PreProcessor:
     
-    PRE_PROCESSING_STEPS = [
-        ("add_time_duration", CallDurationTransformer()),
-        ("add_time_of_day", TimeOfDayTransformer()),
-        ("convert_job", JobTransformer()),
-        ("convert_month", MonthNameTransformer()),
-        ("convert_education", EducationTransformer()),
-        ("convert_outcome", OutcomeTransformer()),
-        ('replace_negative_days_passed', DaysPassedTransformer()),
-        ("impute_missing", DatasetCleanerPipeline()),
-        ("column_selection", SelectFeaturesTransfomer(features=ALL_COLUMNS))
-    ]
-    
-    def __init__(self,steps=PRE_PROCESSING_STEPS):
+    def __init__(self, steps):
         self.steps = steps
 
     def make_pipeline(self):
@@ -86,28 +66,43 @@ class Trainer:
     Trainer class to train multiple models and evaluate.
     """
 
-    def __init__(self, X, y, grid, save_path):
+    def __init__(self, X, y, grid, save_path, verbose=True, pre_processing=PRE_PROCESSING_STEPS):
         """
-        Instantiate the trainer onject with all required data.
+        Instantiate a trainer class to train classifiers specified in 'grid'
 
-        :param X: Features dataframe to fit classifier on.
-        :type X: pandas.DataFrame
-        :param y: Target Variable
-        :type y: pandas.Series / numpy.ndarray  
-        :param grid: A dict of classifier names as keys with
-         a tuple of (classifier, grid search dict) as corresponding values,
-        :type grid: dict
-        :param save_path: Location to save pickled model,
-        :type save_path: str
+        Args:
+            X (pandas.DataFrame): Features dataframe
+            y (pandas.Series / numpy.ndarray): Target variable
+            grid (dict): Dict containing the classifiers to train.
+                The format of the dict is {
+                    <classifier name> : ( classifier instance, classifier grid search dict ),
+                    ...
+                }
+
+                The format of the grid search dict should be:
+
+                    {
+                        <main pipeline step>__<sub_step / parameter>: [ paramater choices],
+                        ...
+                    }
+
+            save_path (str): Path to where the pickled models will be stored
+            verbose (bool, optional): Whether or not to print out progress to terminal. Defaults to True.
         """
         self.X = X
         self.y = y
         self.grid = grid
         self.data_pipeline = Pipeline([
-            ( 'feature_engineering', PreProcessor().make_pipeline()),
+            ( 'feature_engineering', PreProcessor(pre_processing).make_pipeline()),
             ( "encoder", Encoder().make_pipeline()),
         ])
         self.save_path = save_path
+
+    def __call__(self):
+        """
+        Print a table of results.
+        """
+        return TrainerConsole(self).make_performance_table()
 
     def train(self, experiment_name):
         """

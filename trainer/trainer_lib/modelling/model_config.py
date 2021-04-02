@@ -7,6 +7,9 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.linear_model import LogisticRegression
 
+
+from trainer_lib.data.config import ALL_COLUMNS, ONE_HOT_CATEGORICAL_COLUMNS, SCALABLE_NUMERIC_COLUMNS
+
 GRID_SEARCH = {
     "Linear SVM": (SVC(kernel="linear", C=0.025, probability=True), {} ),
     "Decision Tree": (DecisionTreeClassifier(max_depth=5), {}), 
@@ -30,6 +33,29 @@ GRID_SEARCH = {
             # 'model__n_estimators': [10, 100, 150]
         })
 }
+
+from trainer_lib.transformers import SelectFeaturesTransfomer
+from trainer_lib.transformers import CallDurationTransformer
+from trainer_lib.transformers import TimeOfDayTransformer
+from trainer_lib.transformers import MonthNameTransformer
+from trainer_lib.transformers import EducationTransformer
+from trainer_lib.transformers import OutcomeTransformer
+from trainer_lib.transformers import JobTransformer
+from trainer_lib.transformers import DaysPassedTransformer
+from trainer_lib.transformers import DatasetCleanerPipeline
+
+
+PRE_PROCESSING_STEPS = [
+    ("add_time_duration", CallDurationTransformer()),
+    ("add_time_of_day", TimeOfDayTransformer()),
+    ("convert_job", JobTransformer()),
+    ("convert_month", MonthNameTransformer()),
+    ("convert_education", EducationTransformer()),
+    ("convert_outcome", OutcomeTransformer()),
+    ('replace_negative_days_passed', DaysPassedTransformer()),
+    ("impute_missing", DatasetCleanerPipeline()),
+    ("column_selection", SelectFeaturesTransfomer(features=ALL_COLUMNS))
+]
 
 PREDICTION_URL = "http://api:80/insurance_model/predictions/"
 MODEL_POST_URL = "http://api:80/insurance_model/models/"

@@ -231,8 +231,6 @@ class DaysPassedTransformer(BaseEstimator, TransformerMixin):
         outgoing_df.loc[mask, self.feature ] = self.fill_value
         return outgoing_df
         
-        
-
 class OutcomeTransformer(BaseMappingTransformer):
     """
     Class to transform a the Outcome column into binary column of 1 = success, 0 = otherwise.
