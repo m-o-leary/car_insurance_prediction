@@ -4,7 +4,7 @@ from trainer_lib import DataManager
 from trainer_lib.utils.notebook_config import DATA_DIR, REPORT_DIR, DOCKER_DATA_DIR, MODEL_DIR, REPORT_DIR
 from trainer_lib.modelling.train import Trainer, Evaluation, Explain
 from trainer_lib.utils.filesystem import is_dir, make_dir
-from trainer_lib.modelling.model_config import GRID_SEARCH, MODEL_POST_URL
+from trainer_lib.modelling.model_config import GRID_SEARCH, MODEL_POST_URL, PRE_PROCESSING_STEPS
 import os 
 from datetime import datetime
 import warnings
@@ -17,22 +17,28 @@ def get_parser():
 	Creates a new argument parser.
 	"""
 	parser = argparse.ArgumentParser('trainer_lib')
-
+	
 	parser.add_argument('experiment',
-		action="store",
+		action="store",\
 		help="Name of the experiment")
 	parser.add_argument('--profile',
 		action="store_true",
-		help="Profile the data and save to ./reprts directory.")
+		help=f"Profile the data and save to {REPORT_DIR} directory.")
 	parser.add_argument('--out',
 		action="store",
-		help="If provided, will store the processed data in the this location.")
+		help="If provided, will store the transformed data in this location.")
+	
+	model_list = list(GRID_SEARCH.keys())
+	model_list_str = ', '.join(model_list)
 	parser.add_argument('--model',
 		nargs="*",
-		default="all",
+		default=model_list,
 		action="store",
-		choices=list(GRID_SEARCH.keys()),
-		help="Select a model to train.")
+		choices=model_list,
+		help=f"""Specify a list of models to train.
+		By default will train the following list:
+		{model_list_str}.
+		""")
 
 	return parser
 
@@ -52,12 +58,13 @@ def main(args=None):
 
 	# Train pipeline  
 	start = datetime.now()
-	if args.model != "all":
-		search = { k:v for k,v in GRID_SEARCH.items() if k in args.model }
-	else:
-		search = GRID_SEARCH
+	search = { k:v for k,v in GRID_SEARCH.items() if k in args.model }
 	
-	trainer = Trainer(X,y.values.ravel(), search, MODEL_DIR)
+	trainer = Trainer(X, y.values.ravel(), 
+					  grid=search, 
+					  save_path=MODEL_DIR, 
+					  pre_processing=PRE_PROCESSING_STEPS)
+
 	trainer.train(args.experiment)
 	time = datetime.now() - start
 	console.print(f"Training [green]done[/green] in {time}.")
