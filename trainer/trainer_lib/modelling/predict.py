@@ -1,4 +1,5 @@
 import requests
+import pandas as pd
 import json
 from trainer_lib.modelling.model_config import KEYS_MAP, PREDICTION_URL
 from rich.console import Console
@@ -14,6 +15,7 @@ class Predict:
         self.model_id = model_id
         self.endpoint = endpoint
 
+
     def __call__(self):
         """
         Call this class to get a prediction.
@@ -24,11 +26,16 @@ class Predict:
             'Content-Type': 'application/json'
         }
 
+        # Handle when the data passed is either a single row or a DF
+        data = [ DataMapper(row.dropna().to_dict()).map() for i, row in self.rows.iterrows() ] \
+            if type(self.rows) == pd.core.frame.DataFrame \
+                else [ DataMapper(self.rows.dropna().to_dict()).map() ]
+                
         # Add to our DB - the FastAPI container must be running!
         x = requests.post( 
             f"{self.endpoint}{self.model_id}", 
             headers = headers, 
-            data = json.dumps([ DataMapper(row.dropna().to_dict()).map() for i, row in self.rows.iterrows() ]) )
+            data = json.dumps(data) )
         
         # console.print(x.text)
         return x

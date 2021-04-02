@@ -13,25 +13,25 @@ from trainer_lib.data.config import ALL_COLUMNS, ONE_HOT_CATEGORICAL_COLUMNS, SC
 GRID_SEARCH = {
     "Linear SVM": (SVC(kernel="linear", C=0.025, probability=True), {} ),
     "Decision Tree": (DecisionTreeClassifier(max_depth=5), {}), 
-    "Random Forest": (
-        RandomForestClassifier(max_depth=5, n_estimators=10, max_features=2), 
-        {
-            "model__max_features": [1, 2,5,10],
-            "model__max_depth": [1,2,3,5,6],
-            "model__n_estimators": [10,20,30],
-        }), 
-    "Neural Net": (MLPClassifier(alpha=1, max_iter=1000), {}), 
-    "AdaBoost": (AdaBoostClassifier(), {}),
-    "Naive Bayes": (GaussianNB(), {}),
-    "XGB": (
-        XGBClassifier(
-            objective='binary:logistic', 
-            eval_metric='auc',
-            use_label_encoder=False),
-        {
-            'model__max_depth': [2, 3],
-            # 'model__n_estimators': [10, 100, 150]
-        })
+    # "Random Forest": (
+    #     RandomForestClassifier(max_depth=5, n_estimators=10, max_features=2), 
+    #     {
+    #         "model__max_features": [1, 2,5,10],
+    #         "model__max_depth": [1,2,3,5,6],
+    #         "model__n_estimators": [10,20,30],
+    #     }), 
+    # "Neural Net": (MLPClassifier(alpha=1, max_iter=1000), {}), 
+    # "AdaBoost": (AdaBoostClassifier(), {}),
+    # "Naive Bayes": (GaussianNB(), {}),
+    # "XGB": (
+    #     XGBClassifier(
+    #         objective='binary:logistic', 
+    #         eval_metric='auc',
+    #         use_label_encoder=False),
+    #     {
+    #         'model__max_depth': [2, 3],
+    #         # 'model__n_estimators': [10, 100, 150]
+    #     })
 }
 
 from trainer_lib.transformers import SelectFeaturesTransfomer

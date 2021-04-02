@@ -64,9 +64,10 @@ class KaggleCarInsuranceDataLoader(AbstractDataLoader):
         if r.ok:
             z = zipfile.ZipFile(io.BytesIO(r.content))
             z.extractall(self.save_path)
-            console.log("Done.")
+            console.print("Done.")
         else:
             console.print('Could not download file from remote url.', style="bold red")
+            console.print(r.text)
     
     def split_data(self, data):
         """
@@ -84,11 +85,17 @@ class KaggleCarInsuranceDataLoader(AbstractDataLoader):
         :return: Returns the data in either a single dataframe or a tuple
         :rtype: Dataframe or tuple(Dataframe, Series)
         """
-        __train = pd.read_csv(os.path.join(self.save_path, TRAIN_DATA))
-        if return_x_y:
-            return self.split_data(__train)
-        else:
-            return __train
+        try:
+            __train = pd.read_csv(os.path.join(self.save_path, TRAIN_DATA))
+            if return_x_y:
+                return self.split_data(__train)
+            else:
+                return __train
+        except FileNotFoundError:
+            self.download_data()
+            return self.get_train_data(return_x_y=return_x_y)
+        except Exception:
+            console.print("Error")
 
     def get_test_data(self,return_x_y=True):
         """
@@ -99,12 +106,16 @@ class KaggleCarInsuranceDataLoader(AbstractDataLoader):
         :return: Returns the data in either a single dataframe or a tuple
         :rtype: Dataframe or tuple(Dataframe, Series)
         """
-        __test = pd.read_csv(os.path.join( self.save_path, TEST_DATA ))
-        if return_x_y:
-            return self.split_data(__test)
-        else:
-            return __test
-
+        try:
+            __test = pd.read_csv(os.path.join( self.save_path, TEST_DATA ))
+            if return_x_y:
+                return self.split_data(__test)
+            else:
+                return __train
+        except FileNotFoundError:
+            self.download_data()
+            return self.get_train_data(return_x_y=return_x_y)
+        
     def get_train_test(self, *args, **kwargs):
         """
         Wrapper method to combine the train and test data retrieval.
