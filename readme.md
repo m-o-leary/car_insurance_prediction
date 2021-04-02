@@ -46,7 +46,6 @@ docker-compose up
 ```
 
 This will build all the required images and start the containers.
-
 ### EDA / Pre-processing and Model training via Notebooks
 
 The easiest way to understand what my approach was to the end to end model training process is a look through the files in the `/notebooks` directory.
@@ -65,6 +64,38 @@ The interesting files are:
 To access this go to http://127.0.0.1:8899/lab?token=justatokengesture in a browser once the `car_insurance_prediction_trainer_1` container is  up and running.
 
 **The port is set in the `docker-compose.yml` file so if you need to change it from `8899`, change it there and restart the container**
+
+### Training from the command line
+
+Once your project is up and running, you can train the model pipeline with the following commands:
+
+
+```bash
+docker exec -it car_insurance_prediction_trainer_1 bash
+python -m trainer_lib "experiment name"
+```
+
+If all goes accoring to plan, you should see thet `trainer_lib` run and output the following to the terminal:
+
+![should be an image here of terminal output!!](reports/running_lib.png)
+
+Help for the command:
+
+```text
+root@trainer:/app# python -m trainer_lib -h
+usage: trainer_lib [-h] [--profile] [--out OUT] [--model [{Linear SVM,Decision Tree,Random Forest,Neural Net,AdaBoost,Naive Bayes,XGB} ...]] experiment
+
+positional arguments:
+  experiment            Name of the experiment
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --profile             Profile the data and save to ./reprts directory.
+  --out OUT             If provided, will store the processed data in the this location.
+  --model [{Linear SVM,Decision Tree,Random Forest,Neural Net,AdaBoost,Naive Bayes,XGB} ...]
+                        Select a model to train.
+root@trainer:/app#
+```
 
 ### Model Serving
 
