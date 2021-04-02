@@ -1,5 +1,6 @@
 import joblib
 import pandas as pd
+import numpy as np
 
 def load_pipeline(model_id):
     """
@@ -56,3 +57,37 @@ def map_call_line_to_prediction(calls):
         }))
 
     return pd.concat(dfs)
+
+def business_decision(prediction, call):
+    """
+    Business logic to take a call details,
+     model output and make a decision to return based on this business logic
+
+    The logic is as follows:
+
+    (The probability of success * the potential gain ) 
+    x potential lifetime value multiplier for first time customer 
+    - ( 1 - probability of succss * cost of calling )
+
+    Args:
+        prediction (np.ndarray): An array of predictions 
+        where the first element is the probability of 
+        an outcome of the first class (0) and 
+        the second element is the probability of the secnd class (1).
+        call (Call): Call object containing details on which prediction is made 
+
+    Returns:
+        str: And explanation / advice to whoever consumees the API.
+    """
+    cost_of_calling = 15
+    gain_from_selling = 300
+    threshold = 0.4
+    
+    ltv = 1 if call.outcome is "success" else 1.2
+
+    net_gain = ltv * ( prediction[1] * gain_from_selling ) - ( prediction[0]* cost_of_calling )
+    explanation = "Calling this customer is likely to result in them purchasing car insurance." \
+        if prediction[1] > threshold\
+        else "Calling this customer is unlikely to result in a successful sale."
+    explanation += f" The expexcted value of this call is ${np.round(net_gain, 1)}"
+    return explanation

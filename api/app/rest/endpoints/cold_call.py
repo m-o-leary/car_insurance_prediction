@@ -73,22 +73,18 @@ async def run_prediction(model_id, calls: List[Call], db: Session = Depends(get_
     Submit cold call details for success prediction.
     The result and the details will be stored in the database.
 
+        Business rules 
+
     """
     try:
         clf = model_prediction.load_pipeline(model_id)
         call_df = model_prediction.map_call_line_to_prediction(calls)
         preds__ = clf.predict_proba(call_df)
 
-        cost_of_calling = 15
-        gain_from_selling = 300
         predictions = []
         
         for i, pred__ in enumerate(preds__):
-            net_gain = ( pred__[1] * gain_from_selling ) - ( pred__[0]* cost_of_calling )
-            explanation = "Calling this customer is likely to result in them purchasing car insurance." \
-                if pred__[1] > 0.5\
-                    else "Calling this customer is unlikely to result in a successful sale."
-            explanation += f" The expexcted value of this call is ${np.round(net_gain, 1)}"
+            explanation = model_prediction.business_decision(pred__, calls[i])
             pred = CallPrediction(**calls[i].dict(), 
                 explanation=explanation,
                 prediction=int(pred__[1] > 0.5), 
@@ -96,5 +92,6 @@ async def run_prediction(model_id, calls: List[Call], db: Session = Depends(get_
             pred.model_id = model_id
             predictions.append(crud.create_prediction_row(db=db, pred=pred))
         return predictions
+
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail=f"No cached model with id:{model_id} could be found!")
