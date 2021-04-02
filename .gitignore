@@ -1,7 +1,7 @@
 # Don't check in data
 data/raw/
 data/processed/
-reports/
+reports/*.html
 *.egg-info
 __pycache__/
 

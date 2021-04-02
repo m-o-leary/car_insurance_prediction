@@ -90,11 +90,11 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  --profile             Profile the data and save to ./reprts directory.
-  --out OUT             If provided, will store the processed data in the this location.
+  --profile             Profile the data and save to /app/reports/ directory.
+  --out OUT             If provided, will store the transformed data in this location.
   --model [{Linear SVM,Decision Tree,Random Forest,Neural Net,AdaBoost,Naive Bayes,XGB} ...]
-                        Select a model to train.
-root@trainer:/app#
+                        Specify a list of models to train. By default will train the following list: Linear SVM, Decision Tree, Random Forest, Neural Net, AdaBoost, Naive
+                        Bayes, XGB.
 ```
 
 ### Model Serving
